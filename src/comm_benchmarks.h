@@ -71,7 +71,7 @@ class SenderRepeated
           ::google::protobuf::RepeatedPtrField<T>& field)
     {
       for (auto const& i : queue_) {
-        sent_.emplace (timestamp, i);
+        sent_.insert (make_pair (timestamp, i));
       }
       queue_.clear();
       for (auto const& i : sent_) {
