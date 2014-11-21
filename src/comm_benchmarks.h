@@ -216,6 +216,7 @@ class BenchmarkBase
     unique_ptr<uint32_t> devices_blinds_;
     unique_ptr<bool> tablet_display_map_;
 
+    Subscriber DEP_messages_saved_sub_;
     Subscriber messages_saved_sub_;
     uint32_t messages_saved_;
 
@@ -247,6 +248,13 @@ class BenchmarkBase
     }
 
     void
+    DEP_messages_saved_callback (std_msgs::UInt32::ConstPtr const& msg)
+    {
+      ROS_ERROR_STREAM_THROTTLE (1, "Usage of /devices/messages_saved is DEPRECATED, the name is wrong. Use /roah_rsbb/messages_saved");
+      messages_saved_ = msg->data;
+    }
+
+    void
     messages_saved_callback (std_msgs::UInt32::ConstPtr const& msg)
     {
       messages_saved_ = msg->data;
@@ -258,7 +266,8 @@ class BenchmarkBase
       , benchmark_state_pub_ (nh.advertise<roah_rsbb_comm_ros::BenchmarkState> ("/roah_rsbb/benchmark/state", 1, true))
       , state_ (roah_rsbb_msgs::RobotState_State_STOP)
       , start_burst_ (start_burst)
-      , messages_saved_sub_ (nh_.subscribe ("/devices/messages_saved", 1, &BenchmarkBase::messages_saved_callback, this))
+      , DEP_messages_saved_sub_ (nh_.subscribe ("/devices/messages_saved", 1, &BenchmarkBase::DEP_messages_saved_callback, this))
+      , messages_saved_sub_ (nh_.subscribe ("/roah_rsbb/messages_saved", 1, &BenchmarkBase::messages_saved_callback, this))
       , messages_saved_ (0)
     {
       roah_rsbb_comm_ros::BenchmarkState::Ptr benchmark_state = boost::make_shared<roah_rsbb_comm_ros::BenchmarkState>();
