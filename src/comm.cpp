@@ -169,26 +169,6 @@ to_string (roah_rsbb_msgs::RobotState const& msg)
 
 
 
-class CallbackItem
-  : public CallbackInterface
-{
-    boost::function<void() > f_;
-
-  public:
-    CallbackItem (boost::function<void() > const& f)
-      : f_ (f)
-    {
-    }
-
-    virtual CallResult call()
-    {
-      f_();
-      return Success;
-    }
-};
-
-
-
 class Comm
   : boost::noncopyable
   , roah_rsbb::RosPublicChannel
@@ -268,7 +248,7 @@ class Comm
     void
     start_burst()
     {
-      getGlobalCallbackQueue()->addCallback (boost::make_shared<CallbackItem> (boost::bind (&Comm::transmit_state, this, TimerEvent())));
+      getGlobalCallbackQueue()->addCallback (boost::make_shared<roah_rsbb::CallbackItem> (boost::bind (&Comm::transmit_state, this, TimerEvent())));
       state_timer_.stop();
       state_burst_ = 10;
       state_timer_.setPeriod (Duration (0.05));
@@ -332,8 +312,10 @@ class Comm
     }
 
     void
-    receive_benchmark_state_ros (boost::asio::ip::udp::endpoint& endpoint,
-                                 std::shared_ptr<const roah_rsbb_msgs::BenchmarkState> msg)
+    receive_benchmark_state (boost::asio::ip::udp::endpoint endpoint,
+                             uint16_t comp_id,
+                             uint16_t msg_type,
+                             std::shared_ptr<const roah_rsbb_msgs::BenchmarkState> msg)
     {
       if (override_) {
         return;
@@ -357,21 +339,7 @@ class Comm
     }
 
     void
-    receive_benchmark_state (boost::asio::ip::udp::endpoint& endpoint,
-                             uint16_t comp_id,
-                             uint16_t msg_type,
-                             std::shared_ptr<const roah_rsbb_msgs::BenchmarkState> msg)
-    {
-      ROS_DEBUG_STREAM ("Received BenchmarkState from " << endpoint.address().to_string()
-                        << ":" << endpoint.port()
-                        << ", COMP_ID " << comp_id
-                        << ", MSG_TYPE " << msg_type);
-
-      getGlobalCallbackQueue()->addCallback (boost::make_shared<CallbackItem> (boost::bind (&Comm::receive_benchmark_state_ros, this, endpoint, msg)));
-    }
-
-    void
-    receive_robot_state (boost::asio::ip::udp::endpoint& endpoint,
+    receive_robot_state (boost::asio::ip::udp::endpoint endpoint,
                          uint16_t comp_id,
                          uint16_t msg_type,
                          std::shared_ptr<const roah_rsbb_msgs::RobotState> msg)
@@ -384,8 +352,10 @@ class Comm
     }
 
     void
-    receive_rsbb_beacon_ros (boost::asio::ip::udp::endpoint endpoint,
-                             std::shared_ptr<const roah_rsbb_msgs::RoahRsbbBeacon> rsbb_beacon)
+    receive_rsbb_beacon (boost::asio::ip::udp::endpoint endpoint,
+                         uint16_t comp_id,
+                         uint16_t msg_type,
+                         std::shared_ptr<const roah_rsbb_msgs::RoahRsbbBeacon> rsbb_beacon)
     {
       if (override_) {
         return;
@@ -448,8 +418,8 @@ class Comm
                                     connect_port,
                                     param_direct<string> ("~rsbb_key", "DefaultKey"),
                                     param_direct<string> ("~rsbb_cypher", "aes-128-cbc")));
-            private_channel_->signal_benchmark_state_received().connect (boost::bind (&Comm::receive_benchmark_state, this, _1, _2, _3, _4));
-            private_channel_->signal_robot_state_received().connect (boost::bind (&Comm::receive_robot_state, this, _1, _2, _3, _4));
+            private_channel_->set_benchmark_state_callback (&Comm::receive_benchmark_state, this);
+            private_channel_->set_robot_state_callback (&Comm::receive_robot_state, this);
           }
           return;
         }
@@ -465,21 +435,7 @@ class Comm
     }
 
     void
-    receive_rsbb_beacon (boost::asio::ip::udp::endpoint& endpoint,
-                         uint16_t comp_id,
-                         uint16_t msg_type,
-                         std::shared_ptr<const roah_rsbb_msgs::RoahRsbbBeacon> rsbb_beacon)
-    {
-      ROS_DEBUG_STREAM ("Received RoahRsbbBeacon from " << endpoint.address().to_string()
-                        << ":" << endpoint.port()
-                        << ", COMP_ID " << comp_id
-                        << ", MSG_TYPE " << msg_type);
-
-      getGlobalCallbackQueue()->addCallback (boost::make_shared<CallbackItem> (boost::bind (&Comm::receive_rsbb_beacon_ros, this, endpoint, rsbb_beacon)));
-    }
-
-    void
-    receive_robot_beacon (boost::asio::ip::udp::endpoint& endpoint,
+    receive_robot_beacon (boost::asio::ip::udp::endpoint endpoint,
                           uint16_t comp_id,
                           uint16_t msg_type,
                           std::shared_ptr<const roah_rsbb_msgs::RobotBeacon> msg)
@@ -515,8 +471,8 @@ class Comm
       last_benchmark_ = tmp_benchmark_;
       benchmark_pub_.publish (last_benchmark_);
 
-      signal_rsbb_beacon_received().connect (boost::bind (&Comm::receive_rsbb_beacon, this, _1, _2, _3, _4));
-      signal_robot_beacon_received().connect (boost::bind (&Comm::receive_robot_beacon, this, _1, _2, _3, _4));
+      set_rsbb_beacon_callback (&Comm::receive_rsbb_beacon, this);
+      set_robot_beacon_callback (&Comm::receive_robot_beacon, this);
     }
 
     ~Comm()
