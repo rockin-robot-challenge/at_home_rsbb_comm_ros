@@ -457,6 +457,7 @@ class BenchmarkBase
             case roah_rsbb_msgs::BenchmarkState_State_PREPARE:
               ROS_INFO_STREAM ("New goal, prepare");
               new_state (roah_rsbb_msgs::RobotState_State_PREPARING);
+              advertise_end_prepare();
               break;
             case roah_rsbb_msgs::BenchmarkState_State_GOAL_TX:
               // Keep
