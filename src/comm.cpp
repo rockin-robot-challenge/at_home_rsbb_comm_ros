@@ -73,7 +73,11 @@ inline bool
 same (roah_rsbb_comm_ros::TabletState const& a,
       roah_rsbb_comm_ros::TabletState const& b)
 {
-  return (a.display_map == b.display_map);
+  return (a.display_map == b.display_map)
+         && (a.call_time == b.call_time)
+         && (a.position_time == b.position_time)
+         && (a.position_x == b.position_x)
+         && (a.position_y == b.position_y);
 }
 
 
