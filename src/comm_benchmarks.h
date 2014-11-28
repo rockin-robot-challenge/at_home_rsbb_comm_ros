@@ -433,8 +433,8 @@ class BenchmarkBase
               new_state (roah_rsbb_msgs::RobotState_State_STOP);
               break;
             case roah_rsbb_msgs::BenchmarkState_State_PREPARE:
-              ROS_ERROR_STREAM ("Received unexpected state from RSBB: Jumped directly from GOAL_TX or WAITING_RESULT to PREPARE");
-              new_state (roah_rsbb_msgs::RobotState_State_STOP);
+              // Keep
+              // RSBB still hasn't received my EXECUTING
               break;
             case roah_rsbb_msgs::BenchmarkState_State_GOAL_TX:
               // Keep
