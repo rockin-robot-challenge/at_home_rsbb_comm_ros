@@ -196,7 +196,10 @@ class BenchmarkBase
 {
   protected:
     NodeHandle nh_;
+
     Publisher benchmark_state_pub_;
+    roah_rsbb_comm_ros::BenchmarkState::_benchmark_state_type last_benchmark_state_;
+
     ServiceServer end_prepare_srv_;
     ServiceServer end_execute_srv_;
 
@@ -244,7 +247,10 @@ class BenchmarkBase
           benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::EXECUTE;
           break;
       }
-      benchmark_state_pub_.publish (benchmark_state);
+      if (last_benchmark_state_ != benchmark_state->benchmark_state) {
+        last_benchmark_state_ = benchmark_state->benchmark_state;
+        benchmark_state_pub_.publish (benchmark_state);
+      }
     }
 
     void
@@ -264,6 +270,7 @@ class BenchmarkBase
                    boost::function<void() > start_burst)
       : nh_ (nh)
       , benchmark_state_pub_ (nh.advertise<roah_rsbb_comm_ros::BenchmarkState> ("/roah_rsbb/benchmark/state", 1, true))
+      , last_benchmark_state_ (roah_rsbb_comm_ros::BenchmarkState::STOP)
       , state_ (roah_rsbb_msgs::RobotState_State_STOP)
       , start_burst_ (start_burst)
       , DEP_messages_saved_sub_ (nh_.subscribe ("/devices/messages_saved", 1, &BenchmarkBase::DEP_messages_saved_callback, this))
@@ -271,7 +278,7 @@ class BenchmarkBase
       , messages_saved_ (0)
     {
       roah_rsbb_comm_ros::BenchmarkState::Ptr benchmark_state = boost::make_shared<roah_rsbb_comm_ros::BenchmarkState>();
-      benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::STOP;
+      benchmark_state->benchmark_state = last_benchmark_state_;
       benchmark_state_pub_.publish (benchmark_state);
     }
 
