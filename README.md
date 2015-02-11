@@ -84,10 +84,10 @@ Some topics are common to all benchmarks:
 
 | Topic                        | Type                                | Notes                                              |
 |:----------------------------:|:-----------------------------------:|:--------------------------------------------------:|
-| `/devices/messages_saved`    | `std_msgs/UInt32`                   | Never published, only received.                    |
+| `/roah_rsbb/messages_saved`  | `std_msgs/UInt32`                   | Never published, only received.                    |
 | `/roah_rsbb/benchmark/state` | `roah_rsbb_comm_ros/BenchmarkState` | Latched, always published, defaults to `STOP`      |
 
-Topic `/devices/messages_saved` should be used to send to the RSBB
+Topic `/roah_rsbb/messages_saved` should be used to send to the RSBB
 some kind of metric that shows that offline messages are being
 saved. Number of messages or size of the bag file can be used.
 This information is only used to issue a warning as soon as
