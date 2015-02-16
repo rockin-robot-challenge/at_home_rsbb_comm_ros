@@ -93,6 +93,10 @@ add_executable(comm src/comm.cpp)
 add_dependencies(comm roah_rsbb_comm_ros_generate_messages_cpp)
 target_link_libraries(comm roah_rsbb_msgs protobuf_comm ${catkin_LIBRARIES})
 
+add_executable(dummy src/dummy.cpp)
+add_dependencies(dummy roah_rsbb_comm_ros_generate_messages_cpp)
+target_link_libraries(dummy roah_rsbb_msgs ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##
