@@ -62,6 +62,15 @@ To simply test the node, you can use:
 roslaunch roah_rsbb_comm_ros test.launch --screen
 ```
 
+To launch a dummy robot implementation to check communication use:
+```bash
+roslaunch roah_rsbb_comm_ros dummy.launch --screen
+```
+
+Both the test and the dummy launch files can take the address of the RSBB as a parameter:
+`rsbb_host:=192.168.1.255` . This should be set to the `Bcast` of the interface you want to
+use, as reported by `ifconfig`. Alternatively, you can use the address of the RSBB directly.
+
 
 ## Using the Node
 
