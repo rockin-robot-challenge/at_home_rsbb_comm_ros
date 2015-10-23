@@ -673,7 +673,7 @@ class BenchmarkHOPF
 
 
 
-class BenchmarkHOMF
+class BenchmarkHNF
   : public BenchmarkBase
 {
     ServiceServer notifications_srv_;
@@ -689,10 +689,10 @@ class BenchmarkHOMF
     }
 
   public:
-    BenchmarkHOMF (NodeHandle& nh,
+    BenchmarkHNF (NodeHandle& nh,
                    boost::function<void() > start_burst)
       : BenchmarkBase (nh, start_burst)
-      , notifications_srv_ (nh.advertiseService ("/roah_rsbb/notifications", &BenchmarkHOMF::notifications_callback, this))
+      , notifications_srv_ (nh.advertiseService ("/roah_rsbb/notifications", &BenchmarkHNF::notifications_callback, this))
       , goal_pub_ (nh.advertise<roah_rsbb_comm_ros::GoalOMF> ("/roah_rsbb/goal", 1, true))
     {
     }
@@ -742,8 +742,8 @@ BenchmarkBase::create (uint8_t benchmark,
       return new BenchmarkHCFGAC (nh, start_burst);
     case roah_rsbb_comm_ros::Benchmark::HOPF:
       return new BenchmarkHOPF (nh, start_burst);
-    case roah_rsbb_comm_ros::Benchmark::HOMF:
-      return new BenchmarkHOMF (nh, start_burst);
+    case roah_rsbb_comm_ros::Benchmark::HNF:
+      return new BenchmarkHNF (nh, start_burst);
     case roah_rsbb_comm_ros::Benchmark::HSUF:
       return new BenchmarkHSUF (nh, start_burst);
     default:
@@ -774,8 +774,8 @@ BenchmarkBase::benchmark_from_string (string const& benchmark)
   else if (upper == "HOPF") {
     return roah_rsbb_comm_ros::Benchmark::HOPF;
   }
-  else if (upper == "HOMF") {
-    return roah_rsbb_comm_ros::Benchmark::HOMF;
+  else if (upper == "HNF") {
+    return roah_rsbb_comm_ros::Benchmark::HNF;
   }
   else if (upper == "HSUF") {
     return roah_rsbb_comm_ros::Benchmark::HSUF;
