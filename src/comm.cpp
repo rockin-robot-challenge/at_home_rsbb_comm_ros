@@ -305,12 +305,12 @@ class Comm
           break;
       }
       roah_rsbb::ros_to_proto_time (req.acknowledgement, msg.mutable_acknowledgement());
-      for (auto const& i : req.initial_state) {
-        msg.mutable_initial_state()->Add (i);
-      }
-      for (auto const& i : req.switches) {
-        msg.mutable_switches()->Add (i);
-      }
+      // for (auto const& i : req.initial_state) {
+      //   msg.mutable_initial_state()->Add (i);
+      // }
+      // for (auto const& i : req.switches) {
+      //   msg.mutable_switches()->Add (i);
+      // }
       benchmark_->receive (msg);
       return true;
     }

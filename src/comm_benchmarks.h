@@ -701,13 +701,13 @@ class BenchmarkHNF
     receive_goal (roah_rsbb_msgs::BenchmarkState const& proto_msg)
     {
       goal_msg_ = boost::make_shared<roah_rsbb_comm_ros::GoalOMF>();
-      for (auto const& i : proto_msg.initial_state()) {
-        goal_msg_->initial_state.push_back (i);
-      }
-      for (auto const& i : proto_msg.switches()) {
-        goal_msg_->switches.push_back (i);
-      }
-      goal_pub_.publish (goal_msg_);
+      /* for (auto const& i : proto_msg.initial_state()) { */
+      /*   goal_msg_->initial_state.push_back (i); */
+      /* } */
+      /* for (auto const& i : proto_msg.switches()) { */
+      /*   goal_msg_->switches.push_back (i); */
+      /* } */
+      /* goal_pub_.publish (goal_msg_); */
     }
 };
 
