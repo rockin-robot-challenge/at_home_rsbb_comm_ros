@@ -41,6 +41,7 @@
 #include <roah_rsbb_comm_ros/ResultHOPF.h>
 #include <roah_rsbb_comm_ros/Bool.h>
 #include <roah_rsbb_comm_ros/Percentage.h>
+#include <geometry_msgs/Pose2D.h>
 
 
 
@@ -679,7 +680,8 @@ class BenchmarkHNF
 {
     ServiceServer notifications_srv_;
     Publisher goal_pub_;
-    roah_rsbb_comm_ros::GoalOMF::Ptr goal_msg_;
+    // roah_rsbb_comm_ros::GoalOMF::Ptr goal_msg_;
+    geometry_msgs::Pose2D::Ptr goal_msg_;
 
     bool
     notifications_callback (roah_rsbb_comm_ros::String::Request& req,
@@ -694,21 +696,27 @@ class BenchmarkHNF
                    boost::function<void() > start_burst)
       : BenchmarkBase (nh, start_burst)
       , notifications_srv_ (nh.advertiseService ("/roah_rsbb/notifications", &BenchmarkHNF::notifications_callback, this))
-      , goal_pub_ (nh.advertise<roah_rsbb_comm_ros::GoalOMF> ("/roah_rsbb/goal", 1, true))
+      //, goal_pub_ (nh.advertise<roah_rsbb_comm_ros::GoalOMF> ("/roah_rsbb/goal", 1, true))
+      , goal_pub_ (nh.advertise<geometry_msgs::Pose2D> ("/roah_rsbb/goal", 1, true))
     {
     }
 
     virtual void
     receive_goal (roah_rsbb_msgs::BenchmarkState const& proto_msg)
     {
-      goal_msg_ = boost::make_shared<roah_rsbb_comm_ros::GoalOMF>();
-      /* for (auto const& i : proto_msg.initial_state()) { */
-      /*   goal_msg_->initial_state.push_back (i); */
-      /* } */
-      /* for (auto const& i : proto_msg.switches()) { */
-      /*   goal_msg_->switches.push_back (i); */
-      /* } */
-      /* goal_pub_.publish (goal_msg_); */
+      goal_msg_ = boost::make_shared<geometry_msgs::Pose2D>();
+      goal_msg_->x = proto_msg.target_pose_x();
+      goal_msg_->y = proto_msg.target_pose_y();
+      goal_msg_->theta = proto_msg.target_pose_theta();
+      goal_pub_.publish (goal_msg_);
+      // goal_msg_ = boost::make_shared<roah_rsbb_comm_ros::GoalOMF>();
+      // for (auto const& i : proto_msg.initial_state()) {
+      //   goal_msg_->initial_state.push_back (i);
+      // }
+      // for (auto const& i : proto_msg.switches()) {
+      //   goal_msg_->switches.push_back (i);
+      // }
+      // goal_pub_.publish (goal_msg_);
     }
 };
 
