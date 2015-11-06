@@ -442,6 +442,7 @@ class BenchmarkBase
             case roah_rsbb_msgs::BenchmarkState_State_PREPARE:
               // Keep
               // RSBB still hasn't received my EXECUTING
+              receive_goal (msg);
               break;
             case roah_rsbb_msgs::BenchmarkState_State_GOAL_TX:
               // Keep
