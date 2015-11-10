@@ -237,7 +237,7 @@ class BenchmarkBase
       roah_rsbb_comm_ros::BenchmarkState::Ptr benchmark_state = boost::make_shared<roah_rsbb_comm_ros::BenchmarkState>();
       switch (new_state) {
         case roah_rsbb_msgs::RobotState_State_STOP:
-          cout << "\n\nISTO TA A IR PARA O STOP\n\n";
+          cout << "\n\nISTO TA A IR PARA O STOP\n\n" << flush;
           benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::STOP;
           break;
         case roah_rsbb_msgs::RobotState_State_PREPARING:
@@ -284,6 +284,7 @@ class BenchmarkBase
       roah_rsbb_comm_ros::BenchmarkState::Ptr benchmark_state = boost::make_shared<roah_rsbb_comm_ros::BenchmarkState>();
       benchmark_state->benchmark_state = last_benchmark_state_;
       benchmark_state_pub_.publish (benchmark_state);
+      cout << "\n\nCONTRES\n\n" << flush;
     }
 
     bool
@@ -360,6 +361,7 @@ class BenchmarkBase
 
       if ( (state_ != roah_rsbb_msgs::RobotState_State_PREPARING)
            && end_prepare_srv_) {
+              cout << "\n\nEND PREPARE CANCELED\n\n" << flush;
         end_prepare_srv_ = ServiceServer();
       }
       if ( (state_ != roah_rsbb_msgs::RobotState_State_EXECUTING)
@@ -367,6 +369,8 @@ class BenchmarkBase
         end_execute_srv_ = ServiceServer();
       }
 
+      cout << "\n\nLOCAL STATE: " << state_;
+      cout << "\n\nRECEIVED STATE: " << msg.benchmark_state();
       // State Machine Implementation for externally triggered transitions
       switch (state_) {
         case roah_rsbb_msgs::RobotState_State_STOP:
