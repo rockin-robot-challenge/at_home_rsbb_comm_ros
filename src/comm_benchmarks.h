@@ -237,13 +237,16 @@ class BenchmarkBase
       roah_rsbb_comm_ros::BenchmarkState::Ptr benchmark_state = boost::make_shared<roah_rsbb_comm_ros::BenchmarkState>();
       switch (new_state) {
         case roah_rsbb_msgs::RobotState_State_STOP:
+          cout << "\n\nISTO TA A IR PARA O STOP\n\n";
           benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::STOP;
           break;
         case roah_rsbb_msgs::RobotState_State_PREPARING:
+          break;
         case roah_rsbb_msgs::RobotState_State_WAITING_GOAL:
           benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::PREPARE;
           break;
         case roah_rsbb_msgs::RobotState_State_EXECUTING:
+          break;
         case roah_rsbb_msgs::RobotState_State_RESULT_TX:
           benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::EXECUTE;
           break;
@@ -392,6 +395,7 @@ class BenchmarkBase
           switch (msg.benchmark_state()) {
             case roah_rsbb_msgs::BenchmarkState_State_STOP:
               ROS_WARN_STREAM ("Received unexpected STOP: Halting");
+              ROS_INFO_STREAM ("INFO: Received unexpected STOP: Halting");
               new_state (roah_rsbb_msgs::RobotState_State_STOP);
               break;
             case roah_rsbb_msgs::BenchmarkState_State_PREPARE:
@@ -414,6 +418,7 @@ class BenchmarkBase
           switch (msg.benchmark_state()) {
             case roah_rsbb_msgs::BenchmarkState_State_STOP:
               ROS_WARN_STREAM ("Received unexpected STOP: Halting");
+              ROS_INFO_STREAM ("INFO: Received unexpected STOP: Halting");
               new_state (roah_rsbb_msgs::RobotState_State_STOP);
               break;
             case roah_rsbb_msgs::BenchmarkState_State_PREPARE:
@@ -438,12 +443,17 @@ class BenchmarkBase
           switch (msg.benchmark_state()) {
             case roah_rsbb_msgs::BenchmarkState_State_STOP:
               ROS_WARN_STREAM ("Received unexpected STOP: Halting");
+              ROS_INFO_STREAM ("INFO: Received unexpected STOP: Halting");
               new_state (roah_rsbb_msgs::RobotState_State_STOP);
               break;
             case roah_rsbb_msgs::BenchmarkState_State_PREPARE:
               // Keep
               // RSBB still hasn't received my EXECUTING
-              receive_goal (msg);
+              cout << "\n\nA TIMEOUT HAS OCCURRED\n\n";
+              end_execute_srv_ = ServiceServer();
+              new_state (roah_rsbb_msgs::RobotState_State_PREPARING);
+              //receive_goal (msg);
+              advertise_end_prepare();
               break;
             case roah_rsbb_msgs::BenchmarkState_State_GOAL_TX:
               // Keep
@@ -708,6 +718,12 @@ class BenchmarkHNF
       goal_msg_->x = proto_msg.target_pose_x();
       goal_msg_->y = proto_msg.target_pose_y();
       goal_msg_->theta = proto_msg.target_pose_theta();
+
+      cout << "RECEIVING GOAL!!!" << endl;
+      cout << "\tx: " << goal_msg_->x << endl;
+      cout << "\ty: " << goal_msg_->y << endl;
+      cout << "\ttheta: " << goal_msg_->theta << endl;
+
       goal_pub_.publish (goal_msg_);
       // goal_msg_ = boost::make_shared<roah_rsbb_comm_ros::GoalOMF>();
       // for (auto const& i : proto_msg.initial_state()) {
