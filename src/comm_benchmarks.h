@@ -361,7 +361,6 @@ class BenchmarkBase
 
       if ( (state_ != roah_rsbb_msgs::RobotState_State_PREPARING)
            && end_prepare_srv_) {
-              cout << "\n\nEND PREPARE CANCELED\n\n" << flush;
         end_prepare_srv_ = ServiceServer();
       }
       if ( (state_ != roah_rsbb_msgs::RobotState_State_EXECUTING)
@@ -369,8 +368,8 @@ class BenchmarkBase
         end_execute_srv_ = ServiceServer();
       }
 
-      cout << "\n\nLOCAL STATE: " << state_;
-      cout << "\n\nRECEIVED STATE: " << msg.benchmark_state();
+      cout << "\nLOCAL STATE: " << state_ << endl;
+      cout << "RECEIVED STATE: " << msg.benchmark_state() << endl;
       // State Machine Implementation for externally triggered transitions
       switch (state_) {
         case roah_rsbb_msgs::RobotState_State_STOP:
