@@ -4,14 +4,13 @@ RoAH RSBB Comm ROS
 This repository contains a ROS package that can be used to communicate
 with the RoCKIn@Home Referee, Scoring and Benchmarking Box.
 
-The repository *RoAH RSBB Comm* from https://github.com/joaocgreis/roah_rsbb_comm
+The repository *RoAH RSBB Comm* from https://github.com/rockin-robot-challenge/at_home_rsbb_comm
 is included as a git submodule.
 
 :warning: Please remember to always update right before the competitions!
 ```bash
-cd roah_rsbb_comm_ros/
 git pull
-git submodule update --init --recursive
+git submodule update --init
 ```
 
 
@@ -36,8 +35,7 @@ This was tested with Ubuntu 12.04.5 LTS (Precise Pangolin) and
 
 After `git clone` and after every `git pull`, please do:
 ```bash
-cd roah_rsbb_comm_ros/
-git submodule update --init --recursive
+git submodule update --init
 ```
 
 Compile as a normal ROS package in your Catkin workspace.

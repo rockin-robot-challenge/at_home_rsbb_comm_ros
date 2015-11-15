@@ -82,9 +82,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_subdirectory(roah_rsbb_comm/gen/roah_rsbb_msgs/)
-add_subdirectory(roah_rsbb_comm/libs/)
-add_subdirectory(roah_rsbb_comm/include/)
+add_subdirectory(comm/gen/roah_rsbb_msgs/)
+add_subdirectory(comm/libs/)
+add_subdirectory(comm/include/)
 include_directories(
   ${INCLUDE_DIRS}
 )
