@@ -188,11 +188,11 @@ class HOPF
 
 
 
-class HOMF
+class HNF
   : public Benchmark
 {
   public:
-    HOMF()
+    HNF()
     {
     }
 };
@@ -246,8 +246,8 @@ class DummyRobot
         case roah_rsbb_comm_ros::Benchmark::HOPF:
           benchmark_.reset (new HOPF());
           break;
-        case roah_rsbb_comm_ros::Benchmark::HOMF:
-          benchmark_.reset (new HOMF());
+        case roah_rsbb_comm_ros::Benchmark::HNF:
+          benchmark_.reset (new HNF());
           break;
         case roah_rsbb_comm_ros::Benchmark::HSUF:
           benchmark_.reset (new HSUF());

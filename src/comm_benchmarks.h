@@ -41,6 +41,7 @@
 #include <roah_rsbb_comm_ros/ResultHOPF.h>
 #include <roah_rsbb_comm_ros/Bool.h>
 #include <roah_rsbb_comm_ros/Percentage.h>
+#include <geometry_msgs/Pose2D.h>
 
 
 
@@ -223,6 +224,8 @@ class BenchmarkBase
     Subscriber messages_saved_sub_;
     uint32_t messages_saved_;
 
+    bool should_accept_new_prepare_while_executing_;
+
     void
     new_state (roah_rsbb_msgs::RobotState::State const& new_state)
     {
@@ -236,14 +239,19 @@ class BenchmarkBase
       roah_rsbb_comm_ros::BenchmarkState::Ptr benchmark_state = boost::make_shared<roah_rsbb_comm_ros::BenchmarkState>();
       switch (new_state) {
         case roah_rsbb_msgs::RobotState_State_STOP:
+          cout << "\n\nISTO TA A IR PARA: 0\n\n" << flush;
           benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::STOP;
           break;
         case roah_rsbb_msgs::RobotState_State_PREPARING:
+        //break;
         case roah_rsbb_msgs::RobotState_State_WAITING_GOAL:
+          cout << "\n\nISTO TA A IR PARA: 1\n\n" << flush;
           benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::PREPARE;
           break;
         case roah_rsbb_msgs::RobotState_State_EXECUTING:
+        //break;
         case roah_rsbb_msgs::RobotState_State_RESULT_TX:
+          cout << "\n\nISTO TA A IR PARA: 2\n\n" << flush;
           benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::EXECUTE;
           break;
       }
@@ -276,6 +284,7 @@ class BenchmarkBase
       , DEP_messages_saved_sub_ (nh_.subscribe ("/devices/messages_saved", 1, &BenchmarkBase::DEP_messages_saved_callback, this))
       , messages_saved_sub_ (nh_.subscribe ("/roah_rsbb/messages_saved", 1, &BenchmarkBase::messages_saved_callback, this))
       , messages_saved_ (0)
+      , should_accept_new_prepare_while_executing_ (false)
     {
       roah_rsbb_comm_ros::BenchmarkState::Ptr benchmark_state = boost::make_shared<roah_rsbb_comm_ros::BenchmarkState>();
       benchmark_state->benchmark_state = last_benchmark_state_;
@@ -363,6 +372,8 @@ class BenchmarkBase
         end_execute_srv_ = ServiceServer();
       }
 
+      /* cout << "\nLOCAL STATE: " << state_ << endl; */
+      /* cout << "RECEIVED STATE: " << msg.benchmark_state() << endl; */
       // State Machine Implementation for externally triggered transitions
       switch (state_) {
         case roah_rsbb_msgs::RobotState_State_STOP:
@@ -391,6 +402,7 @@ class BenchmarkBase
           switch (msg.benchmark_state()) {
             case roah_rsbb_msgs::BenchmarkState_State_STOP:
               ROS_WARN_STREAM ("Received unexpected STOP: Halting");
+              ROS_INFO_STREAM ("INFO: Received unexpected STOP: Halting");
               new_state (roah_rsbb_msgs::RobotState_State_STOP);
               break;
             case roah_rsbb_msgs::BenchmarkState_State_PREPARE:
@@ -413,6 +425,7 @@ class BenchmarkBase
           switch (msg.benchmark_state()) {
             case roah_rsbb_msgs::BenchmarkState_State_STOP:
               ROS_WARN_STREAM ("Received unexpected STOP: Halting");
+              ROS_INFO_STREAM ("INFO: Received unexpected STOP: Halting");
               new_state (roah_rsbb_msgs::RobotState_State_STOP);
               break;
             case roah_rsbb_msgs::BenchmarkState_State_PREPARE:
@@ -437,11 +450,18 @@ class BenchmarkBase
           switch (msg.benchmark_state()) {
             case roah_rsbb_msgs::BenchmarkState_State_STOP:
               ROS_WARN_STREAM ("Received unexpected STOP: Halting");
+              ROS_INFO_STREAM ("INFO: Received unexpected STOP: Halting");
               new_state (roah_rsbb_msgs::RobotState_State_STOP);
               break;
             case roah_rsbb_msgs::BenchmarkState_State_PREPARE:
               // Keep
               // RSBB still hasn't received my EXECUTING
+              if (should_accept_new_prepare_while_executing_) {
+                cout << "\n\nA TIMEOUT HAS OCCURRED\n\n";
+                end_execute_srv_ = ServiceServer();
+                new_state (roah_rsbb_msgs::RobotState_State_PREPARING);
+                advertise_end_prepare();
+              }
               break;
             case roah_rsbb_msgs::BenchmarkState_State_GOAL_TX:
               // Keep
@@ -673,12 +693,13 @@ class BenchmarkHOPF
 
 
 
-class BenchmarkHOMF
+class BenchmarkHNF
   : public BenchmarkBase
 {
     ServiceServer notifications_srv_;
     Publisher goal_pub_;
-    roah_rsbb_comm_ros::GoalOMF::Ptr goal_msg_;
+    // roah_rsbb_comm_ros::GoalOMF::Ptr goal_msg_;
+    geometry_msgs::Pose2D::Ptr goal_msg_;
 
     bool
     notifications_callback (roah_rsbb_comm_ros::String::Request& req,
@@ -689,25 +710,38 @@ class BenchmarkHOMF
     }
 
   public:
-    BenchmarkHOMF (NodeHandle& nh,
-                   boost::function<void() > start_burst)
+    BenchmarkHNF (NodeHandle& nh,
+                  boost::function<void() > start_burst)
       : BenchmarkBase (nh, start_burst)
-      , notifications_srv_ (nh.advertiseService ("/roah_rsbb/notifications", &BenchmarkHOMF::notifications_callback, this))
-      , goal_pub_ (nh.advertise<roah_rsbb_comm_ros::GoalOMF> ("/roah_rsbb/goal", 1, true))
+      , notifications_srv_ (nh.advertiseService ("/roah_rsbb/notifications", &BenchmarkHNF::notifications_callback, this))
+      //, goal_pub_ (nh.advertise<roah_rsbb_comm_ros::GoalOMF> ("/roah_rsbb/goal", 1, true))
+      , goal_pub_ (nh.advertise<geometry_msgs::Pose2D> ("/roah_rsbb/goal", 1, true))
     {
+      should_accept_new_prepare_while_executing_ = true;
     }
 
     virtual void
     receive_goal (roah_rsbb_msgs::BenchmarkState const& proto_msg)
     {
-      goal_msg_ = boost::make_shared<roah_rsbb_comm_ros::GoalOMF>();
-      for (auto const& i : proto_msg.initial_state()) {
-        goal_msg_->initial_state.push_back (i);
-      }
-      for (auto const& i : proto_msg.switches()) {
-        goal_msg_->switches.push_back (i);
-      }
+      goal_msg_ = boost::make_shared<geometry_msgs::Pose2D>();
+      goal_msg_->x = proto_msg.target_pose_x();
+      goal_msg_->y = proto_msg.target_pose_y();
+      goal_msg_->theta = proto_msg.target_pose_theta();
+
+      cout << "RECEIVING GOAL!!!" << endl;
+      cout << "\tx: " << goal_msg_->x << endl;
+      cout << "\ty: " << goal_msg_->y << endl;
+      cout << "\ttheta: " << goal_msg_->theta << endl;
+
       goal_pub_.publish (goal_msg_);
+      // goal_msg_ = boost::make_shared<roah_rsbb_comm_ros::GoalOMF>();
+      // for (auto const& i : proto_msg.initial_state()) {
+      //   goal_msg_->initial_state.push_back (i);
+      // }
+      // for (auto const& i : proto_msg.switches()) {
+      //   goal_msg_->switches.push_back (i);
+      // }
+      // goal_pub_.publish (goal_msg_);
     }
 };
 
@@ -742,8 +776,8 @@ BenchmarkBase::create (uint8_t benchmark,
       return new BenchmarkHCFGAC (nh, start_burst);
     case roah_rsbb_comm_ros::Benchmark::HOPF:
       return new BenchmarkHOPF (nh, start_burst);
-    case roah_rsbb_comm_ros::Benchmark::HOMF:
-      return new BenchmarkHOMF (nh, start_burst);
+    case roah_rsbb_comm_ros::Benchmark::HNF:
+      return new BenchmarkHNF (nh, start_burst);
     case roah_rsbb_comm_ros::Benchmark::HSUF:
       return new BenchmarkHSUF (nh, start_burst);
     default:
@@ -774,8 +808,8 @@ BenchmarkBase::benchmark_from_string (string const& benchmark)
   else if (upper == "HOPF") {
     return roah_rsbb_comm_ros::Benchmark::HOPF;
   }
-  else if (upper == "HOMF") {
-    return roah_rsbb_comm_ros::Benchmark::HOMF;
+  else if (upper == "HNF") {
+    return roah_rsbb_comm_ros::Benchmark::HNF;
   }
   else if (upper == "HSUF") {
     return roah_rsbb_comm_ros::Benchmark::HSUF;
