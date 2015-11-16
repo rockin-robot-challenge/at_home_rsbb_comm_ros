@@ -224,6 +224,8 @@ class BenchmarkBase
     Subscriber messages_saved_sub_;
     uint32_t messages_saved_;
 
+    bool should_accept_new_prepare_while_executing_;
+
     void
     new_state (roah_rsbb_msgs::RobotState::State const& new_state)
     {
@@ -241,13 +243,13 @@ class BenchmarkBase
           benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::STOP;
           break;
         case roah_rsbb_msgs::RobotState_State_PREPARING:
-          //break;
+        //break;
         case roah_rsbb_msgs::RobotState_State_WAITING_GOAL:
           cout << "\n\nISTO TA A IR PARA: 1\n\n" << flush;
           benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::PREPARE;
           break;
         case roah_rsbb_msgs::RobotState_State_EXECUTING:
-          //break;
+        //break;
         case roah_rsbb_msgs::RobotState_State_RESULT_TX:
           cout << "\n\nISTO TA A IR PARA: 2\n\n" << flush;
           benchmark_state->benchmark_state = roah_rsbb_comm_ros::BenchmarkState::EXECUTE;
@@ -282,11 +284,11 @@ class BenchmarkBase
       , DEP_messages_saved_sub_ (nh_.subscribe ("/devices/messages_saved", 1, &BenchmarkBase::DEP_messages_saved_callback, this))
       , messages_saved_sub_ (nh_.subscribe ("/roah_rsbb/messages_saved", 1, &BenchmarkBase::messages_saved_callback, this))
       , messages_saved_ (0)
+      , should_accept_new_prepare_while_executing_ (false)
     {
       roah_rsbb_comm_ros::BenchmarkState::Ptr benchmark_state = boost::make_shared<roah_rsbb_comm_ros::BenchmarkState>();
       benchmark_state->benchmark_state = last_benchmark_state_;
       benchmark_state_pub_.publish (benchmark_state);
-      cout << "\n\nCONTRES\n\n" << flush;
     }
 
     bool
@@ -454,11 +456,12 @@ class BenchmarkBase
             case roah_rsbb_msgs::BenchmarkState_State_PREPARE:
               // Keep
               // RSBB still hasn't received my EXECUTING
-              cout << "\n\nA TIMEOUT HAS OCCURRED\n\n";
-              end_execute_srv_ = ServiceServer();
-              new_state (roah_rsbb_msgs::RobotState_State_PREPARING);
-              //receive_goal (msg);
-              advertise_end_prepare();
+              if (should_accept_new_prepare_while_executing_) {
+                cout << "\n\nA TIMEOUT HAS OCCURRED\n\n";
+                end_execute_srv_ = ServiceServer();
+                new_state (roah_rsbb_msgs::RobotState_State_PREPARING);
+                advertise_end_prepare();
+              }
               break;
             case roah_rsbb_msgs::BenchmarkState_State_GOAL_TX:
               // Keep
@@ -708,12 +711,13 @@ class BenchmarkHNF
 
   public:
     BenchmarkHNF (NodeHandle& nh,
-                   boost::function<void() > start_burst)
+                  boost::function<void() > start_burst)
       : BenchmarkBase (nh, start_burst)
       , notifications_srv_ (nh.advertiseService ("/roah_rsbb/notifications", &BenchmarkHNF::notifications_callback, this))
       //, goal_pub_ (nh.advertise<roah_rsbb_comm_ros::GoalOMF> ("/roah_rsbb/goal", 1, true))
       , goal_pub_ (nh.advertise<geometry_msgs::Pose2D> ("/roah_rsbb/goal", 1, true))
     {
+      should_accept_new_prepare_while_executing_ = true;
     }
 
     virtual void
