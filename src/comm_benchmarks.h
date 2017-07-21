@@ -34,6 +34,8 @@
 
 #include <std_srvs/Empty.h>
 #include <std_msgs/UInt32.h>
+#include <std_msgs/String.h>
+#include <geometry_msgs/Pose2D.h>
 #include <roah_rsbb_comm_ros/Benchmark.h>
 #include <roah_rsbb_comm_ros/BenchmarkState.h>
 #include <roah_rsbb_comm_ros/GoalOMF.h>
@@ -41,7 +43,6 @@
 #include <roah_rsbb_comm_ros/ResultHOPF.h>
 #include <roah_rsbb_comm_ros/Bool.h>
 #include <roah_rsbb_comm_ros/Percentage.h>
-#include <geometry_msgs/Pose2D.h>
 
 
 
@@ -746,6 +747,57 @@ class BenchmarkHNF
 };
 
 
+class BenchmarkSTB
+  : public BenchmarkBase
+{
+
+    Publisher goal_pub_;
+
+//    bool
+//    end_execute_callback (roah_rsbb_comm_ros::ResultHOPF::Request& req,
+//                          roah_rsbb_comm_ros::ResultHOPF::Response& res)
+//    {
+//      ROS_INFO_STREAM ("Ending execution stage");
+//      result_ = req;
+//      new_state (roah_rsbb_msgs::RobotState_State_RESULT_TX);
+//      return true;
+//    }
+
+  protected:
+//    virtual void
+//    advertise_end_execute()
+//    {
+//      end_execute_srv_ = nh_.advertiseService ("/roah_rsbb/end_execute", &BenchmarkHOPF::end_execute_callback, this);
+//    }
+
+public:
+	BenchmarkSTB(NodeHandle& nh, boost::function<void()> start_burst) :
+			BenchmarkBase(nh, start_burst),
+			goal_pub_(nh.advertise<std_msgs::String>("/roah_rsbb/goal", 1, true)) {
+	}
+
+    virtual void
+    receive_goal (roah_rsbb_msgs::BenchmarkState const& proto_msg) {
+
+    	std_msgs::String goalMsg = std_msgs::String();
+    	goalMsg.data = proto_msg.generic_goal();
+
+    	cout << "RECEIVING GOAL!!!" << endl;
+    	cout << goalMsg.data << endl;
+
+    	goal_pub_.publish (goalMsg);
+
+    }
+
+    virtual void
+    fill_result (roah_rsbb_msgs::RobotState& msg)
+    {
+      msg.set_generic_result("SOME RESULT");
+    }
+};
+
+
+
 
 class BenchmarkHSUF
   : public BenchmarkBase
@@ -778,6 +830,8 @@ BenchmarkBase::create (uint8_t benchmark,
       return new BenchmarkHOPF (nh, start_burst);
     case roah_rsbb_comm_ros::Benchmark::HNF:
       return new BenchmarkHNF (nh, start_burst);
+    case roah_rsbb_comm_ros::Benchmark::STB:
+      return new BenchmarkSTB (nh, start_burst);
     case roah_rsbb_comm_ros::Benchmark::HSUF:
       return new BenchmarkHSUF (nh, start_burst);
     default:
@@ -810,6 +864,9 @@ BenchmarkBase::benchmark_from_string (string const& benchmark)
   }
   else if (upper == "HNF") {
     return roah_rsbb_comm_ros::Benchmark::HNF;
+  }
+  else if (upper == "STB") {
+    return roah_rsbb_comm_ros::Benchmark::STB;
   }
   else if (upper == "HSUF") {
     return roah_rsbb_comm_ros::Benchmark::HSUF;

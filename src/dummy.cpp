@@ -64,7 +64,12 @@ class Benchmark
         std_srvs::Empty s;
         if (! ros::service::call ("/roah_rsbb/end_execute", s)) {
           ROS_ERROR ("Error calling service /roah_rsbb/end_execute");
+        } else {
+        
+        	ROS_INFO("called /roah_rsbb/end_execute");
         }
+        
+        
       }
       else {
         ROS_ERROR ("Could not find service /roah_rsbb/end_execute");
@@ -198,6 +203,16 @@ class HNF
 };
 
 
+class STB
+  : public Benchmark
+{
+  public:
+    STB()
+    {
+    }
+};
+
+
 
 class HSUF
   : public Benchmark
@@ -222,6 +237,9 @@ class DummyRobot
     void
     benchmark_callback (roah_rsbb_comm_ros::Benchmark::ConstPtr const& msg)
     {
+      
+      std::cout << "benchmark_callback" << std::endl;
+          
       if (last_benchmark_ == msg->benchmark) {
         return;
       }
@@ -230,6 +248,9 @@ class DummyRobot
 
       // Destroy the old before creating a new. Just for precaution.
       benchmark_.reset();
+
+		
+      std::cout << "msg->benchmark: " << msg->benchmark << std::endl;
 
       switch (msg->benchmark) {
         case roah_rsbb_comm_ros::Benchmark::NONE:
@@ -249,10 +270,16 @@ class DummyRobot
         case roah_rsbb_comm_ros::Benchmark::HNF:
           benchmark_.reset (new HNF());
           break;
+        case roah_rsbb_comm_ros::Benchmark::STB:
+          std::cout << "STB" << std::endl;
+          benchmark_.reset (new STB());
+          break;
         case roah_rsbb_comm_ros::Benchmark::HSUF:
           benchmark_.reset (new HSUF());
           break;
       }
+      
+      
     }
 
   public:
