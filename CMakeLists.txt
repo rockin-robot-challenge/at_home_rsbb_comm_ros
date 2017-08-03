@@ -16,6 +16,29 @@ add_definitions("-std=c++0x")
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost REQUIRED)
 
+####### BEGIN ;EP
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAML_CPP yaml-cpp>=0.5.0)
+if(YAML_CPP_FOUND)
+  include_directories(${YAML_CPP_INCLUDE_DIRS})
+  link_directories(${YAML_CPP_LIBRARY_DIRS})
+  message(STATUS "  using yaml-cpp from ${YAML_CPP_LIBRARIES} (YAML_CPP_LIBRARY_DIRS: ${YAML_CPP_LIBRARY_DIRS}, YAML_CPP_INCLUDE_DIRS: ${YAML_CPP_INCLUDE_DIRS})")
+else()
+  include_directories("/tmp/yaml-cpp-0.5.1/include")
+  set(YAML_CPP_LIBRARIES "/tmp/yaml-cpp-0.5.1/libyaml-cpp.a")
+  if(NOT EXISTS ${YAML_CPP_LIBRARIES})
+    message(FATAL_ERROR "yaml-cpp>=0.5.0 not found, please run:
+    cd /tmp &&
+    wget https://yaml-cpp.googlecode.com/files/yaml-cpp-0.5.1.tar.gz &&
+    tar xavf yaml-cpp-0.5.1.tar.gz &&
+    cd yaml-cpp-0.5.1 &&
+    cmake . &&
+    make -j8 yaml-cpp")
+  endif()
+  message(STATUS "  using yaml-cpp from ${YAML_CPP_LIBRARIES}")
+endif()
+####### END ;EP
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -91,7 +114,7 @@ include_directories(
 
 add_executable(comm src/comm.cpp)
 add_dependencies(comm roah_rsbb_comm_ros_generate_messages_cpp)
-target_link_libraries(comm roah_rsbb_msgs protobuf_comm ${catkin_LIBRARIES})
+target_link_libraries(comm roah_rsbb_msgs protobuf_comm ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
 
 add_executable(dummy src/dummy.cpp)
 add_dependencies(dummy roah_rsbb_comm_ros_generate_messages_cpp)

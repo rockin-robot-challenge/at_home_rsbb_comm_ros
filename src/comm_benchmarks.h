@@ -28,8 +28,9 @@
 #include <boost/noncopyable.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <ros/ros.h>
+#include <yaml-cpp/yaml.h>
 
+#include <ros/ros.h>
 #include <ros_roah_rsbb.h>
 
 #include <std_srvs/Empty.h>
@@ -725,24 +726,20 @@ class BenchmarkHNF
     receive_goal (roah_rsbb_msgs::BenchmarkState const& proto_msg)
     {
       goal_msg_ = boost::make_shared<geometry_msgs::Pose2D>();
-      goal_msg_->x = proto_msg.target_pose_x();
-      goal_msg_->y = proto_msg.target_pose_y();
-      goal_msg_->theta = proto_msg.target_pose_theta();
 
-      cout << "RECEIVING GOAL!!!" << endl;
+      YAML::Node goal_payload = YAML::Load(proto_msg.generic_goal());
+
+      goal_msg_->x = goal_payload[0].as<double>();
+      goal_msg_->y = goal_payload[1].as<double>();
+      goal_msg_->theta = goal_payload[2].as<double>();
+
+      cout << "RECEIVING GOAL!!! " << endl;
       cout << "\tx: " << goal_msg_->x << endl;
       cout << "\ty: " << goal_msg_->y << endl;
       cout << "\ttheta: " << goal_msg_->theta << endl;
 
       goal_pub_.publish (goal_msg_);
-      // goal_msg_ = boost::make_shared<roah_rsbb_comm_ros::GoalOMF>();
-      // for (auto const& i : proto_msg.initial_state()) {
-      //   goal_msg_->initial_state.push_back (i);
-      // }
-      // for (auto const& i : proto_msg.switches()) {
-      //   goal_msg_->switches.push_back (i);
-      // }
-      // goal_pub_.publish (goal_msg_);
+
     }
 };
 

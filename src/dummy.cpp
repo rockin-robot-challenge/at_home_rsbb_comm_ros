@@ -193,13 +193,21 @@ class HOPF
 
 
 
-class HNF
-  : public Benchmark
-{
-  public:
-    HNF()
-    {
-    }
+class HNF: public Benchmark {
+
+public:
+	HNF() {
+	}
+
+	void execute() {
+//		Duration(10, 0).sleep();
+#include <iostream>
+
+		cout << "Press ENTER to end execute stage..." << endl;
+		cin.get();
+
+		end_execute();
+	}
 };
 
 
