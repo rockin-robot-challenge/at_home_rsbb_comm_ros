@@ -29,6 +29,7 @@
 
 #include <std_srvs/Empty.h>
 #include <roah_rsbb_comm_ros/ResultHOPF.h>
+#include <roah_rsbb_comm_ros/Percentage.h>
 
 
 
@@ -156,6 +157,33 @@ class HCFGAC
     HCFGAC()
     {
     }
+    
+    void
+    execute()
+    {
+      Duration (1, 0).sleep();
+
+      if (ros::service::waitForService ("/roah_rsbb/devices/dimmer/set", 3.0)) {
+        roah_rsbb_comm_ros::Percentage p;
+        p.request.data = 34;
+
+        if (! ros::service::call ("/roah_rsbb/devices/dimmer/set", p)) {
+          ROS_ERROR ("Error calling service /roah_rsbb/devices/dimmer/set");
+        } else {
+          
+          ROS_INFO ("called service /roah_rsbb/devices/dimmer/set");
+        
+        }
+      }
+      else {
+        ROS_ERROR ("Could not find service /roah_rsbb/devices/dimmer/set");
+      }
+      
+      Duration (1, 0).sleep();
+      
+      end_execute();
+      
+    }
 };
 
 
@@ -175,8 +203,8 @@ class HOPF
 
       if (ros::service::waitForService ("/roah_rsbb/end_execute", 100)) {
         roah_rsbb_comm_ros::ResultHOPF s;
-        s.request.object_class = "cups";
-        s.request.object_name = "red_cup";
+        s.request.object_class = "a";
+        s.request.object_name = "a1";
         s.request.object_pose.x = 0.1;
         s.request.object_pose.y = 0.2;
         s.request.object_pose.theta = 1.23;
@@ -246,7 +274,7 @@ class DummyRobot
     benchmark_callback (roah_rsbb_comm_ros::Benchmark::ConstPtr const& msg)
     {
       
-      std::cout << "benchmark_callback" << std::endl;
+      std::cout << "benchmark_callback: ";
           
       if (last_benchmark_ == msg->benchmark) {
         return;
@@ -256,26 +284,29 @@ class DummyRobot
 
       // Destroy the old before creating a new. Just for precaution.
       benchmark_.reset();
-
-		
-      std::cout << "msg->benchmark: " << msg->benchmark << std::endl;
-
+      
       switch (msg->benchmark) {
         case roah_rsbb_comm_ros::Benchmark::NONE:
+          std::cout << "NONE" << std::endl;
           break;
         case roah_rsbb_comm_ros::Benchmark::HGTKMH:
+          std::cout << "HGTKMH" << std::endl;
           benchmark_.reset (new HGTKMH());
           break;
         case roah_rsbb_comm_ros::Benchmark::HWV:
+          std::cout << "HWV" << std::endl;
           benchmark_.reset (new HWV());
           break;
         case roah_rsbb_comm_ros::Benchmark::HCFGAC:
+          std::cout << "HCFGAC" << std::endl;
           benchmark_.reset (new HCFGAC());
           break;
         case roah_rsbb_comm_ros::Benchmark::HOPF:
+          std::cout << "HOPF" << std::endl;
           benchmark_.reset (new HOPF());
           break;
         case roah_rsbb_comm_ros::Benchmark::HNF:
+          std::cout << "HNF" << std::endl;
           benchmark_.reset (new HNF());
           break;
         case roah_rsbb_comm_ros::Benchmark::STB:
@@ -283,6 +314,7 @@ class DummyRobot
           benchmark_.reset (new STB());
           break;
         case roah_rsbb_comm_ros::Benchmark::HSUF:
+          std::cout << "HSUF" << std::endl;
           benchmark_.reset (new HSUF());
           break;
       }

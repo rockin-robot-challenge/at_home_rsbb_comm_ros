@@ -635,8 +635,7 @@ class BenchmarkHCFGAC
     }
 
   public:
-    BenchmarkHCFGAC (NodeHandle& nh,
-                     boost::function<void() > start_burst)
+    BenchmarkHCFGAC (NodeHandle& nh, boost::function<void() > start_burst)
       : BenchmarkBase (nh, start_burst)
       , final_command_srv_ (nh.advertiseService ("/roah_rsbb/final_command", &BenchmarkHCFGAC::final_command_callback, this))
       , switch_1_ (nh, "switch_1", devices_switch_1_)
@@ -690,6 +689,21 @@ class BenchmarkHOPF
       msg.set_object_pose_x (result_.object_pose.x);
       msg.set_object_pose_y (result_.object_pose.y);
       msg.set_object_pose_theta (result_.object_pose.theta);
+      
+      YAML::Node result_node;
+      
+      result_node["class"] = result_.object_class;
+      result_node["instance"] = result_.object_name;
+      result_node["x"] = result_.object_pose.x;
+      result_node["y"] = result_.object_pose.y;
+      result_node["theta"] = result_.object_pose.theta;
+      
+      YAML::Emitter emitted_stream;
+      
+      emitted_stream << result_node;
+      
+      msg.set_generic_result(emitted_stream.c_str());
+      
     }
 };
 
