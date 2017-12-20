@@ -64,7 +64,8 @@ same (roah_rsbb_comm_ros::DevicesState const& a,
          && (a.switch_2 == b.switch_2)
          && (a.switch_3 == b.switch_3)
          && (a.dimmer == b.dimmer)
-         && (a.blinds == b.blinds);
+         && (a.blinds == b.blinds)
+         && (a.door_win_detect == b.door_win_detect);
 }
 
 
@@ -372,6 +373,7 @@ class Comm
       ds->switch_3 = rsbb_beacon->devices_switch_3();
       ds->dimmer = rsbb_beacon->devices_dimmer();
       ds->blinds = rsbb_beacon->devices_blinds();
+      ds->door_win_detect = rsbb_beacon->devices_door_win_detect();
       if ( (! last_devices_state_)
            || (! same (*last_devices_state_, *ds))) {
         if (last_devices_state_) {
