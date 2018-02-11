@@ -228,11 +228,11 @@ public:
 	}
 
 	void execute() {
-//		Duration(10, 0).sleep();
-#include <iostream>
-
-		cout << "Press ENTER to end execute stage..." << endl;
-		cin.get();
+		Duration(3, 0).sleep();
+//#include <iostream>
+//
+//		cout << "Press ENTER to end execute stage..." << endl;
+//		cin.get();
 
 		end_execute();
 	}
