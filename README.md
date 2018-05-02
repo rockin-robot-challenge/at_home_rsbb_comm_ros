@@ -2,10 +2,10 @@ RoAH RSBB Comm ROS
 ==================
 
 This repository contains a ROS package that can be used to communicate
-with the RoCKIn@Home Referee, Scoring and Benchmarking Box.
+with the ERL-SR RSBB (Referee, Scoring and Benchmarking Box).
+To install and know more about the RSBB, see [this repo](https://github.com/rockin-robot-challenge/rsbb).
 
-The repository *RoAH RSBB Comm* from https://github.com/rockin-robot-challenge/at_home_rsbb_comm
-is included as a git submodule.
+The repository *RoAH RSBB Comm* from https://github.com/rockin-robot-challenge/at_home_rsbb_comm is included as a git submodule.
 
 :warning: Please remember to always update right before the competitions!
 ```bash
@@ -66,8 +66,7 @@ roslaunch roah_rsbb_comm_ros dummy.launch --screen
 ```
 
 Both the test and the dummy launch files can take the address of the RSBB as a parameter:
-`rsbb_host:=192.168.1.255` . This should be set to the `Bcast` of the interface you want to
-use, as reported by `ifconfig`. Alternatively, you can use the address of the RSBB directly.
+`rsbb_host:=10.2.0.255` . This should be set to the `Bcast` of the interface you want to use, as reported by `ifconfig`. Alternatively, you can use the address of the RSBB directly.
 
 
 ## Using the Node
@@ -164,7 +163,7 @@ service has a different type.
 |:------------------------:|:-------------------------------:|:-------------------------------:|
 | `/roah_rsbb/end_execute` | `roah_rsbb_comm_ros/ResultHOPF` | Only available during `EXECUTE` |
 
-
+<!---
 #### Object Manipulation Functionality
 
 This benchmark has specific goals, therefore a new topic is needed.
@@ -178,7 +177,11 @@ almost simultaneously but in an undefined order. For this benchmark
 alone you can assume that whenever a goal is published the state
 has changed to `EXECUTE`. Therefore, you only need to receive the
 `STOP` and `PREPARE` states on the state topic.
+--->
 
+
+#### Navigation Functionality
+`TODO`
 
 #### Speech Understanding Functionality
 
@@ -278,7 +281,7 @@ The goal should be completed with something like:
 rosservice call /roah_rsbb/end_execute "{object_class: cups, object_name: red_cup, object_pose: {x: 0.1, y: 0.2, theta: 1.23} }"
 ```
 
-
+<!--
 #### Object Manipulation Functionality
 
 ```bash
@@ -287,7 +290,7 @@ rosservice call /roah_rsbb/override "{benchmark_type: 5, benchmark_state: 1}"
 rosservice call /roah_rsbb/override "{benchmark_type: 5, benchmark_state: 2, initial_state: [false, true, false, true, true, false, true, false, false, true], switches: [4, 3, 1, 7, 8]}"
 rosservice call /roah_rsbb/override "{benchmark_type: 5, benchmark_state: 3}"
 ```
-
+-->
 
 #### Speech Understanding Functionality
 

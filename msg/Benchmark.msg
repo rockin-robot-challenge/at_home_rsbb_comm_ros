@@ -5,4 +5,5 @@ uint8 HCFGAC = 3
 uint8 HOPF = 4
 uint8 HNF = 5
 uint8 HSUF = 6
+uint8 STB = 7
 uint8 benchmark

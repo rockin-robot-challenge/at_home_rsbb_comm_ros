@@ -28,12 +28,15 @@
 #include <boost/noncopyable.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <ros/ros.h>
+#include <yaml-cpp/yaml.h>
 
+#include <ros/ros.h>
 #include <ros_roah_rsbb.h>
 
 #include <std_srvs/Empty.h>
 #include <std_msgs/UInt32.h>
+#include <std_msgs/String.h>
+#include <geometry_msgs/Pose2D.h>
 #include <roah_rsbb_comm_ros/Benchmark.h>
 #include <roah_rsbb_comm_ros/BenchmarkState.h>
 #include <roah_rsbb_comm_ros/GoalOMF.h>
@@ -41,7 +44,6 @@
 #include <roah_rsbb_comm_ros/ResultHOPF.h>
 #include <roah_rsbb_comm_ros/Bool.h>
 #include <roah_rsbb_comm_ros/Percentage.h>
-#include <geometry_msgs/Pose2D.h>
 
 
 
@@ -633,8 +635,7 @@ class BenchmarkHCFGAC
     }
 
   public:
-    BenchmarkHCFGAC (NodeHandle& nh,
-                     boost::function<void() > start_burst)
+    BenchmarkHCFGAC (NodeHandle& nh, boost::function<void() > start_burst)
       : BenchmarkBase (nh, start_burst)
       , final_command_srv_ (nh.advertiseService ("/roah_rsbb/final_command", &BenchmarkHCFGAC::final_command_callback, this))
       , switch_1_ (nh, "switch_1", devices_switch_1_)
@@ -688,6 +689,21 @@ class BenchmarkHOPF
       msg.set_object_pose_x (result_.object_pose.x);
       msg.set_object_pose_y (result_.object_pose.y);
       msg.set_object_pose_theta (result_.object_pose.theta);
+      
+      YAML::Node result_node;
+      
+      result_node["class"] = result_.object_class;
+      result_node["instance"] = result_.object_name;
+      result_node["x"] = result_.object_pose.x;
+      result_node["y"] = result_.object_pose.y;
+      result_node["theta"] = result_.object_pose.theta;
+      
+      YAML::Emitter emitted_stream;
+      
+      emitted_stream << result_node;
+      
+      msg.set_generic_result(emitted_stream.c_str());
+      
     }
 };
 
@@ -724,26 +740,73 @@ class BenchmarkHNF
     receive_goal (roah_rsbb_msgs::BenchmarkState const& proto_msg)
     {
       goal_msg_ = boost::make_shared<geometry_msgs::Pose2D>();
-      goal_msg_->x = proto_msg.target_pose_x();
-      goal_msg_->y = proto_msg.target_pose_y();
-      goal_msg_->theta = proto_msg.target_pose_theta();
 
-      cout << "RECEIVING GOAL!!!" << endl;
+      YAML::Node goal_payload = YAML::Load(proto_msg.generic_goal());
+
+      goal_msg_->x = goal_payload[0].as<double>();
+      goal_msg_->y = goal_payload[1].as<double>();
+      goal_msg_->theta = goal_payload[2].as<double>();
+
+      cout << "RECEIVING GOAL!!! " << endl;
       cout << "\tx: " << goal_msg_->x << endl;
       cout << "\ty: " << goal_msg_->y << endl;
       cout << "\ttheta: " << goal_msg_->theta << endl;
 
       goal_pub_.publish (goal_msg_);
-      // goal_msg_ = boost::make_shared<roah_rsbb_comm_ros::GoalOMF>();
-      // for (auto const& i : proto_msg.initial_state()) {
-      //   goal_msg_->initial_state.push_back (i);
-      // }
-      // for (auto const& i : proto_msg.switches()) {
-      //   goal_msg_->switches.push_back (i);
-      // }
-      // goal_pub_.publish (goal_msg_);
+
     }
 };
+
+
+class BenchmarkSTB
+  : public BenchmarkBase
+{
+
+    Publisher goal_pub_;
+
+//    bool
+//    end_execute_callback (roah_rsbb_comm_ros::ResultHOPF::Request& req,
+//                          roah_rsbb_comm_ros::ResultHOPF::Response& res)
+//    {
+//      ROS_INFO_STREAM ("Ending execution stage");
+//      result_ = req;
+//      new_state (roah_rsbb_msgs::RobotState_State_RESULT_TX);
+//      return true;
+//    }
+
+  protected:
+//    virtual void
+//    advertise_end_execute()
+//    {
+//      end_execute_srv_ = nh_.advertiseService ("/roah_rsbb/end_execute", &BenchmarkHOPF::end_execute_callback, this);
+//    }
+
+public:
+	BenchmarkSTB(NodeHandle& nh, boost::function<void()> start_burst) :
+			BenchmarkBase(nh, start_burst),
+			goal_pub_(nh.advertise<std_msgs::String>("/roah_rsbb/goal", 1, true)) {
+	}
+
+    virtual void
+    receive_goal (roah_rsbb_msgs::BenchmarkState const& proto_msg) {
+
+    	std_msgs::String goalMsg = std_msgs::String();
+    	goalMsg.data = proto_msg.generic_goal();
+
+    	cout << "RECEIVING GOAL!!!" << endl;
+    	cout << goalMsg.data << endl;
+
+    	goal_pub_.publish (goalMsg);
+
+    }
+
+    virtual void
+    fill_result (roah_rsbb_msgs::RobotState& msg)
+    {
+      msg.set_generic_result("SOME RESULT");
+    }
+};
+
 
 
 
@@ -778,6 +841,8 @@ BenchmarkBase::create (uint8_t benchmark,
       return new BenchmarkHOPF (nh, start_burst);
     case roah_rsbb_comm_ros::Benchmark::HNF:
       return new BenchmarkHNF (nh, start_burst);
+    case roah_rsbb_comm_ros::Benchmark::STB:
+      return new BenchmarkSTB (nh, start_burst);
     case roah_rsbb_comm_ros::Benchmark::HSUF:
       return new BenchmarkHSUF (nh, start_burst);
     default:
@@ -810,6 +875,9 @@ BenchmarkBase::benchmark_from_string (string const& benchmark)
   }
   else if (upper == "HNF") {
     return roah_rsbb_comm_ros::Benchmark::HNF;
+  }
+  else if (upper == "STB") {
+    return roah_rsbb_comm_ros::Benchmark::STB;
   }
   else if (upper == "HSUF") {
     return roah_rsbb_comm_ros::Benchmark::HSUF;
