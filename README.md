@@ -3,7 +3,7 @@ RoAH RSBB Comm ROS
 
 This repository contains a ROS package that can be used to communicate
 with the ERL-SR RSBB (Referee, Scoring and Benchmarking Box).
-To install and know more about the RSBB, see [this repo `TODO`](TODO).
+To install and know more about the RSBB, see [this repo](https://github.com/rockin-robot-challenge/rsbb).
 
 The repository *RoAH RSBB Comm* from https://github.com/rockin-robot-challenge/at_home_rsbb_comm is included as a git submodule.
 
@@ -13,7 +13,6 @@ git pull
 git submodule update --init
 ```
 
-`TODO: specify better the topics type. Add FBM2 Navigation.`
 
 ## Dependencies
 
@@ -179,6 +178,10 @@ alone you can assume that whenever a goal is published the state
 has changed to `EXECUTE`. Therefore, you only need to receive the
 `STOP` and `PREPARE` states on the state topic.
 --->
+
+
+#### Navigation Functionality
+`TODO`
 
 #### Speech Understanding Functionality
 
