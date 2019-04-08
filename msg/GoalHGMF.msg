@@ -1,0 +1,2 @@
+uint8 object_type
+geometry_msgs/Pose2D target_pose

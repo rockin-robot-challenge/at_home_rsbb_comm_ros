@@ -154,20 +154,8 @@ to_string (roah_rsbb_msgs::RobotState const& msg)
   if (msg.has_tablet_display_map()) {
     ss << " ; tablet_display_map: " << (msg.devices_switch_1() ? "MAP" : "BUTTONS");
   }
-  if (msg.has_object_class()) {
-    ss << " ; object_class: " << msg.object_class();
-  }
-  if (msg.has_object_name()) {
-    ss << " ; object_name: " << msg.object_name();
-  }
-  if (msg.has_object_pose_x()) {
-    ss << " ; object_pose_x: " << msg.object_pose_x();
-  }
-  if (msg.has_object_pose_y()) {
-    ss << " ; object_pose_y: " << msg.object_pose_y();
-  }
-  if (msg.has_object_pose_theta()) {
-    ss << " ; object_pose_theta: " << msg.object_pose_theta();
+  if (msg.has_generic_result()) {
+    ss << " ; generic_result: " << msg.generic_result();
   }
   return ss.str();
 }

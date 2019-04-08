@@ -1,0 +1,3 @@
+string person_name
+geometry_msgs/Pose2D person_pose
+---
