@@ -27,8 +27,7 @@ sudo apt-get install build-essential cmake libboost-all-dev libprotoc-dev protob
 Furthermore, you need to use at least ROS Hydro, follow the
 instructions at http://wiki.ros.org/ROS/Installation/ .
 
-This was tested with Ubuntu 12.04.5 LTS (Precise Pangolin) and
-14.04.1 LTS (Trusty Tahr).
+This package was successfully tested on Ubuntu 12, 14, 16 and 18.
 
 
 ## Compiling
@@ -157,7 +156,7 @@ No special topics or services.
 #### Object Perception Functionality
 
 This benchmark has a result, therefore the `/roah_rsbb/end_execute`
-service has a different type.
+service has a different type:
 
 | Service                  | Type                            | Notes                           |
 |:------------------------:|:-------------------------------:|:-------------------------------:|
@@ -181,12 +180,33 @@ has changed to `EXECUTE`. Therefore, you only need to receive the
 
 
 #### Navigation Functionality
-`TODO`
+
+In this benchmark, waypoints are sent to the robot one by one. Waypoints are published as Pose2D messages to the `/roah_rsbb/goal` topic.
+
+After the robot calls `end_execute` the next waypoint is sent, and this repeats for all waypoints.
 
 #### Speech Understanding Functionality
 
 No special topics or services.
 
+#### People Perception Functionality
+
+This benchmark has a result (the robot's guess of the person's name and position), therefore the `/roah_rsbb/end_execute`
+service has a different type:
+
+| Service                  | Type                            | Notes                           |
+|:------------------------:|:-------------------------------:|:-------------------------------:|
+| `/roah_rsbb/end_execute` | `roah_rsbb_comm_ros/ResultHPPF` | Only available during `EXECUTE` |
+
+#### Person Following Functionality
+
+No special topics or services. This benchmark is a bit unorthodox: after execution is requested,
+the robot should start following the person, and shouldn't call the `end_execute` service: there is no timeout in this challenge.
+
+#### Grasping and Manipulation Functionality
+
+In this benchmark, the type of object to be grasped and the position where it should be placed are sent to the robot
+as `GoalHGMF` messages published to the `/roah_rsbb/goal` topic.
 
 ## Overriding benchmark selection for testing
 
@@ -300,3 +320,7 @@ rosservice call /roah_rsbb/override "{benchmark_type: 6, benchmark_state: 1}"
 rosservice call /roah_rsbb/override "{benchmark_type: 6, benchmark_state: 2}"
 rosservice call /roah_rsbb/override "{benchmark_type: 6, benchmark_state: 3}"
 ```
+
+## Support
+
+If you have any questions, please add them as issues on this repo.

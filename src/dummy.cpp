@@ -26,9 +26,11 @@
 #include <std_msgs/UInt32.h>
 #include <roah_rsbb_comm_ros/Benchmark.h>
 #include <roah_rsbb_comm_ros/BenchmarkState.h>
+#include <roah_rsbb_comm_ros/GoalHGMF.h>
 
 #include <std_srvs/Empty.h>
 #include <roah_rsbb_comm_ros/ResultHOPF.h>
+#include <roah_rsbb_comm_ros/ResultHPPF.h>
 #include <roah_rsbb_comm_ros/Percentage.h>
 
 
@@ -222,20 +224,25 @@ class HOPF
 
 
 class HNF: public Benchmark {
+  Subscriber goal_sub_;
 
-public:
-	HNF() {
-	}
+  void execute() {
+    Duration(3, 0).sleep();
 
-	void execute() {
-		Duration(3, 0).sleep();
-//#include <iostream>
-//
-//		cout << "Press ENTER to end execute stage..." << endl;
-//		cin.get();
+    end_execute();
+  }
 
-		end_execute();
-	}
+  void goal_callback(geometry_msgs::Pose2D::Ptr msg) {
+    std::cout << "Received waypoint:" << endl;
+    std::cout << "\tX: " << msg->x << endl;
+    std::cout << "\tY: " << msg->y << endl;
+    std::cout << "\ttheta: " << msg->theta << endl;
+  }
+
+  public:
+    HNF() {
+      goal_sub_ = nh_.subscribe ("/roah_rsbb/goal", 1, &HNF::goal_callback, this);
+    }
 };
 
 
@@ -257,6 +264,81 @@ class HSUF
     HSUF()
     {
     }
+};
+
+
+
+class HPPF
+  : public Benchmark
+{
+  public:
+    HPPF()
+    {
+    }
+
+    void
+    execute()
+    {
+      Duration (3, 0).sleep();
+
+      if (ros::service::waitForService ("/roah_rsbb/end_execute", 100)) {
+        roah_rsbb_comm_ros::ResultHPPF s;
+        s.request.person_name = "Alice";
+        s.request.person_pose.x = 0.4;
+        s.request.person_pose.y = 0.4;
+        s.request.person_pose.theta = 0.9;
+
+        if (! ros::service::call ("/roah_rsbb/end_execute", s)) {
+          ROS_ERROR ("Error calling service /roah_rsbb/end_execute");
+        }
+      }
+      else {
+        ROS_ERROR ("Could not find service /roah_rsbb/end_execute");
+      }
+    }
+};
+
+
+
+class HPFF
+  : public Benchmark
+{
+  public:
+    HPFF()
+    {
+    }
+
+    void
+    execute()
+    {
+      // This benchmark runs for 5 minutes, during which the robot should always be following a person.
+      // Either don't call end_execute() at all, or call it just before 5 minutes pass (e.g. after 4m55s have passed)
+    }
+};
+
+
+
+class HGMF: public Benchmark {
+  Subscriber goal_sub_;
+
+  void execute() {
+		Duration(3, 0).sleep();
+
+		end_execute();
+	}
+
+  void goal_callback(roah_rsbb_comm_ros::GoalHGMF::Ptr msg) {
+    std::cout << "Received goal:" << endl;
+
+    std::cout << "\tObject type: " << msg->object_type << endl;
+
+    std::cout << "\tTarget X: " << msg->target_pose.x << endl;
+    std::cout << "\tTarget Y: " << msg->target_pose.y << endl;
+  }
+public:
+	HGMF() {
+    goal_sub_ = nh_.subscribe ("/roah_rsbb/goal", 1, &HGMF::goal_callback, this);
+	}	
 };
 
 
@@ -316,6 +398,18 @@ class DummyRobot
         case roah_rsbb_comm_ros::Benchmark::HSUF:
           std::cout << "HSUF" << std::endl;
           benchmark_.reset (new HSUF());
+          break;
+        case roah_rsbb_comm_ros::Benchmark::HPPF:
+          std::cout << "HPPF" << std::endl;
+          benchmark_.reset (new HPPF());
+          break;
+        case roah_rsbb_comm_ros::Benchmark::HPFF:
+          std::cout << "HPFF" << std::endl;
+          benchmark_.reset (new HPFF());
+          break;
+        case roah_rsbb_comm_ros::Benchmark::HGMF:
+          std::cout << "HGMF" << std::endl;
+          benchmark_.reset (new HGMF());
           break;
       }
       

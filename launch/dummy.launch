@@ -1,7 +1,7 @@
 <launch>
   <arg name="team_name" default="TestingTeam"/>
   <arg name="robot_name" default="TestingRobot"/>
-  <arg name="rsbb_host" default="10.2.0.10"/>
+  <arg name="rsbb_host" default="10.2.0.255"/>
   <arg name="rsbb_port" default="6666"/>
   <arg name="rsbb_key" default="PASSWORD"/>
 
@@ -13,6 +13,6 @@
     <param name="rsbb_key" type="string" value="$(arg rsbb_key)"/>
   </node>
 
-  <node pkg="roah_rsbb_comm_ros" type="dummy" name="dummy_robot" respawn="true"/>
+  <node pkg="roah_rsbb_comm_ros" type="dummy" name="dummy_robot" respawn="true" output="screen"/>
 
 </launch>
