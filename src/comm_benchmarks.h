@@ -906,7 +906,7 @@ class BenchmarkHGMF
       goal_msg_->target_pose.y = goal_payload[1].as<double>();
       goal_msg_->target_pose.theta = 0.0;
 
-      goal_msg_->object_type = goal_payload[2].as<uint8_t>();
+      goal_msg_->object_type = goal_payload[2].as<uint16_t>();
 
       cout << "RECEIVING GOAL!!! " << endl;
 
